@@ -1,14 +1,18 @@
-import { Body, Controller, Header, Post } from '@nestjs/common';
+import { Body, Controller, Header, HttpCode, Post, Response } from '@nestjs/common';
 import { ReqDto, ReqHeartbeatDto, ReqPeripheralDto, ReqPlateDto, ReqType } from './dto/req.dto';
-import { ResDto } from './dto/res.dto';
+import { ResDto } from './dto';
+import { Lpr1Service } from './lpr1.service';
 
 @Controller('camera')
 export class Lpr1Controller {
+    constructor(private lpr1Service: Lpr1Service) {}
+
     @Post('post')
-    handle(@Body() reqDto: ReqDto): ResDto {
+    @HttpCode(200)
+    handle(@Body() reqDto: ReqPlateDto): ResDto {
         switch(reqDto.type) {
             case ReqType.HEARTBEAT:
-                return this.handleHeartbeat(reqDto as ReqHeartbeatDto);
+                return this.lpr1Service.handleHeartbeat(reqDto as ReqHeartbeatDto);
             case ReqType.PLATE_ONLINE:
                 return this.handlePlate(reqDto as ReqPlateDto);
             default:
@@ -27,19 +31,19 @@ export class Lpr1Controller {
     //     return ResDto.acknowledge();
     // }
 
-    private handleHeartbeat(heartbeatDto: ReqHeartbeatDto): ResDto {
-        console.log('heartbeat request');
-        return ResDto.acknowledge();
-    }
+    // private handleHeartbeat(heartbeatDto: ReqHeartbeatDto): ResDto {
+    //     console.log('heartbeat request');
+    //     return ResDto.acknowledge();
+    // }
 
     private handlePlate(plateDto: ReqPlateDto): ResDto {
         console.log('online request');
-        return ResDto.acknowledge();
+        return ResDto.generate();
     }
 
     private handlePeripheral(peripheralDto: ReqPeripheralDto): ResDto {
         console.log('ioinput request');
-        return ResDto.acknowledge();
+        return ResDto.generate();
     }
 
     private handleUnknown(): ResDto {

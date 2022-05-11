@@ -1,6 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ReqHeartbeatDto } from './dto/req.dto';
-import { ResHeartbeatDto } from './dto/res.dto';
+import { ReqHeartbeatDto, ResHeartbeatDto } from './dto';
 
 
 @Controller('lpr/2')

@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AccessRule {
+  id           Int         @id @default(autoincrement()) @map("rule_id")
+  name         String?     @map("rule_name") @db.VarChar(255)
+  isChargeable Boolean?    @map("chargeable")
+  projectId    Int         @map("project_id")
+  gates        Json
+  project      Project     @relation(fields: [projectId], references: [id], onDelete: Cascade, map: "access_rules_ibfk_1")
+  whitelist    Whitelist[]
+
+  @@index([projectId], map: "project_id")
+  @@map("access_rules")
+}
+
+model DeviceStatusLog {
+  log_id        Int       @id @default(autoincrement())
+  project_name  String?   @db.VarChar(255)
+  gate_name     String?   @db.VarChar(255)
+  gate_type     String?   @db.VarChar(255)
+  device_id     String?   @db.VarChar(255)
+  device_name   String?   @db.VarChar(255)
+  device_type   String?   @db.VarChar(255)
+  device_status String?   @db.VarChar(255)
+  log_datetime  DateTime? @db.DateTime(0)
+
+  @@map("device_status_log")
+}
+
+model Device {
+  id               String   @id @map("device_id") @db.VarChar(255)
+  ip               String?  @map("device_ip") @db.VarChar(255)
+  gateId           Int?     @map("gate_id")
+  name             String?  @map("device_name") @db.VarChar(255)
+  type             String?  @map("device_type") @db.VarChar(255)
+  carpark          String?  @map("device_carpark") @db.VarChar(255)
+  status           String?  @map("device_status") @db.VarChar(255)
+  manufacturer     String?  @db.VarChar(255)
+  manufacturerCode String?  @map("manufacturer_code") @db.VarChar(255)
+  direction        String?  @db.VarChar(255)
+  isPrimary        Boolean? @map("primary_device")
+  hasGateControl   Boolean? @map("gate_control")
+  gate             Gate?    @relation(fields: [gateId], references: [id], map: "devices_ibfk_1")
+
+  @@index([gateId], map: "gate_id")
+  @@map("devices")
+}
+
+model Gate {
+  id           Int       @id @default(autoincrement()) @map("gate_id")
+  projectId    Int?      @map("project_id")
+  name         String?   @map("gate_name") @db.VarChar(255)
+  type         String?   @map("gate_type") @db.VarChar(255)
+  isChargeable Boolean?  @map("chargeable")
+  ledOnTime    DateTime? @map("led_on_time") @db.Time(0)
+  ledOffTime   DateTime? @map("led_off_time") @db.Time(0)
+  allowedTypes Json?     @map("allowed_types")
+  project      Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade, map: "gates_ibfk_1")
+  devices      Device[]
+
+  @@index([projectId], map: "project_id")
+  @@map("gates")
+}
+
+model MovementLog {
+  log_id          Int       @id @default(autoincrement())
+  project_name    String?   @db.VarChar(255)
+  vehicle_type    String?   @db.VarChar(255)
+  plate_color     String?   @db.VarChar(255)
+  is_opened       Boolean?
+  gate_name       String?   @db.VarChar(255)
+  gate_type       String?   @db.VarChar(255)
+  detection_time  DateTime? @db.DateTime(0)
+  confirmed_time  DateTime? @db.DateTime(0)
+  original_plate  String?   @db.VarChar(255)
+  confirmed_plate String?   @db.VarChar(255)
+  image_1         String?   @db.VarChar(255)
+  plate_image     String?   @db.VarChar(255)
+  is_whitelist    Boolean?
+  device_id       String?   @db.VarChar(255)
+
+  @@map("movement_log")
+}
+
+model ProjectConfig {
+  project_id         Int      @id
+  open_delay         Int?
+  instant_upload     Boolean?
+  detect_color       Boolean?
+  store_local        Boolean?
+  network_warn_delay Int?
+  project            Project  @relation(fields: [project_id], references: [id], onDelete: Cascade, map: "op_params_ibfk_1")
+
+  @@map("op_params")
+}
+
+model Plate {
+  plateNumber  String      @id @map("plate_num") @db.VarChar(255)
+  color        String?     @map("plate_color") @db.VarChar(255)
+  vehicleOwner String?     @map("vehicle_owner") @db.VarChar(255)
+  vehicleType  String?     @map("vehicle_type") @db.VarChar(255)
+  remark       String?     @db.VarChar(255)
+  whitelist    Whitelist[]
+
+  @@map("plates")
+}
+
+model Project {
+  id                    Int            @id @default(autoincrement()) @map("project_id")
+  name                  String?        @map("project_name") @db.VarChar(255)
+  type                  String?        @map("project_type") @db.VarChar(255)
+  location              String?        @db.VarChar(255)
+  contactNumber         String?        @map("contact_number") @db.VarChar(255)
+  maCompany             String?        @map("ma_company") @db.VarChar(255)
+  equipmentManufacturer String?        @map("equip_manu") @db.VarChar(255)
+  accessConditions      Json?          @map("check_conditions")
+  maxLevDistance        Int?           @map("lev_dist")
+  access_rules          AccessRule[]
+  gates                 Gate[]
+  op_params             ProjectConfig?
+  units                 Unit[]
+
+  @@map("projects")
+}
+
+model RegexPlate {
+  match_plate String  @id @db.VarChar(255)
+  match_name  String? @db.VarChar(255)
+  match_type  String  @db.VarChar(255)
+
+  @@map("regex_plates")
+}
+
+model SpecialPlate {
+  match_plate  String  @id @db.VarChar(255)
+  actual_plate String  @db.VarChar(255)
+  project_id   Int
+  project_name String? @db.VarChar(255)
+
+  @@map("special_plates")
+}
+
+model Unit {
+  id            Int         @id @default(autoincrement()) @map("unit_id")
+  name          String?     @map("unit_name") @db.VarChar(255)
+  projectId     Int         @map("project_id")
+  entryGates    Json?       @map("entry_gates")
+  exitGates     Json?       @map("exit_gates")
+  maxPlateCount Int?        @default(-1) @map("max_plates")
+  currentPlates Json?       @map("current_plates")
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade, map: "units_ibfk_1")
+  whitelist     Whitelist[]
+
+  @@index([projectId], map: "project_id")
+  @@map("units")
+}
+
+model Whitelist {
+  id            BigInt     @id @default(autoincrement()) @map("record_id") @db.UnsignedBigInt
+  plateNumber   String     @map("plate_num") @db.VarChar(255)
+  accessRuleId  Int        @map("rule_id")
+  tag           String?    @db.VarChar(255)
+  startDateTime DateTime?  @map("start_datetime") @db.DateTime(0)
+  endDateTime   DateTime?  @map("end_datetime") @db.DateTime(0)
+  unitId        Int?       @map("unit_id")
+  plate         Plate      @relation(fields: [plateNumber], references: [plateNumber], onDelete: Cascade, map: "whitelist_ibfk_1")
+  accessRule    AccessRule @relation(fields: [accessRuleId], references: [id], onDelete: Cascade, map: "whitelist_ibfk_2")
+  unit          Unit?      @relation(fields: [unitId], references: [id], map: "whitelist_ibfk_3")
+
+  @@index([plateNumber], map: "plate_num")
+  @@index([accessRuleId], map: "rule_id")
+  @@index([unitId], map: "unit_id")
+  @@map("whitelist")
+}

@@ -24,15 +24,21 @@ class ResDto {
     private constructor() {
         this.error_num = 0;
         this.error_str = '';
-        this.passwd = '';
+        this.passwd = null;
         this.gpio_data = [];
         this.rs485_data = [];
         // this.triger_data = null;
         this.whitelist_data = [];
     }
 
-    public static acknowledge(): ResDto {
+    static generate(): ResDto {
         return new ResDto();
+    }
+
+    nominal(): ResDto {
+        this.error_num = 0;
+        this.error_str = 'noerror';
+        return this;
     }
 }
 

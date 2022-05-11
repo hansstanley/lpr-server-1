@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { Lpr1Module } from './lpr1/lpr1.module';
-import { LprController } from './lpr.controller';
 import { Lpr2Module } from './lpr2/lpr2.module';
+import { LprService } from './lpr.service';
+import { DeviceModule } from 'src/device/device.module';
 
 @Module({
-  imports: [Lpr1Module, Lpr2Module],
-  controllers: [LprController]
+  imports: [DeviceModule],
+  providers: [LprService],
+  exports: [DeviceModule, LprService]
 })
 export class LprModule {}
